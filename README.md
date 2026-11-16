@@ -9,14 +9,17 @@ Application de bureau en Python qui permet de relever, image par image et à la 
 
 ## Fonctionnalités
 
-- Ouverture et lecture d'une vidéo, navigation image par image (⏪ ⬅ ▶ ➡ ⏩)
-- **Échelle** : deux clics droits sur la vidéo, puis saisie de la distance réelle entre les deux points
-- **Origine du repère** : clic molette (axe X vers la droite, axe Y vers le haut)
-- **Pointage** : un clic gauche par image, la vidéo avance automatiquement ; fin automatique à la dernière image ou avec `Échap`
-- Graphiques **y(x)**, **x(t)** et **y(t)** avec Matplotlib
-- Tableau des valeurs (temps, X, Y) dans une fenêtre séparée
+- Ouverture d'une vidéo (MP4, AVI, MOV, MKV) et lecture à sa vitesse réelle
+- Navigation image par image : boutons ⇤ ← ▶ → ⇥, flèches du clavier, `Ctrl+←` / `Ctrl+→` pour aller au début ou à la fin, barre espace pour lecture/pause
+- Affichage du numéro d'image et du temps écoulé
+- **Origine du repère** : clic molette (axe x vers la droite, axe y vers le haut)
+- **Échelle** : deux clics droits sur un objet de longueur connue, puis saisie de la distance réelle en mètres (`0.5` ou `0,5`)
+- **Pointage** : un clic gauche par image, la vidéo avance automatiquement ; fin automatique à la dernière image ou avec `Échap`. Cliquer à nouveau sur une image déjà pointée remplace le point.
+- Tableau des mesures **t (s), x, y** dans le repère choisi, en mètres (ou en pixels si aucune échelle n'est définie)
+- Graphiques **y(x)**, **x(t)** et **y(t)** avec Matplotlib (zoom et export d'image possibles)
 - Export **CSV** (séparateur point-virgule)
-- Raccourcis clavier : `Ctrl+O` ouvrir, `Ctrl+Q` lire, `Ctrl+S` enregistrer, `Ctrl+X` quitter
+- Grandes vidéos réduites automatiquement pour tenir à l'écran, sans perte de précision sur les mesures
+- Avertissement avant de quitter ou d'ouvrir une autre vidéo si des points ne sont pas enregistrés
 
 ## Installation
 
@@ -31,11 +34,38 @@ Tkinter doit être disponible (inclus avec Python sous Windows et macOS ; sous D
 ## Utilisation
 
 ```bash
-cd src
-python3 Application.py
+python3 src/Application.py                                   # puis Fichier > Ouvrir
+python3 src/Application.py resources/videos/exemple_chute.mp4  # ouvre directement une vidéo
 ```
 
-Ouvrez ensuite une vidéo via **Fichier → Ouvrir** (`Ctrl+O`). Le dossier `resources/videos/` est prévu pour y déposer vos propres vidéos.
+Exemple de relevé avec la vidéo fournie (`exemple_chute.mp4`, la barre noire mesure 1 m) :
+
+1. **Éditer > Mode édition**.
+2. Clic molette sur l'extrémité gauche de la barre noire : c'est l'origine.
+3. Clic droit sur chaque extrémité de la barre, puis saisissez `1`.
+4. Clic gauche sur la balle à chaque image. Arrêtez avec `Échap` quand vous voulez.
+5. **Afficher > Afficher graphiques** pour voir la trajectoire, **Fichier > Sauvegarder** (`Ctrl+S`) pour l'export.
+
+| Raccourci | Action |
+| --- | --- |
+| `Ctrl+O` | Ouvrir une vidéo |
+| `Ctrl+Q` | Lire / mettre en pause |
+| `Ctrl+S` | Enregistrer les mesures en CSV |
+| `Ctrl+X` | Quitter |
+| `Espace` | Lecture / pause |
+| `←` / `→` | Image précédente / suivante |
+| `Ctrl+←` / `Ctrl+→` | Première / dernière image |
+| `Échap` | Terminer le pointage |
+
+Sous macOS, le clic droit et le clic molette sont gérés automatiquement (Tk les inverse sur ce système).
+
+### Format du fichier CSV
+
+```
+t (s);x (m);y (m)
+0.0000;0.0987;1.2000
+0.0333;0.1493;1.2613
+```
 
 ## Tests
 
@@ -43,6 +73,8 @@ Ouvrez ensuite une vidéo via **Fichier → Ouvrir** (`Ctrl+O`). Le dossier `res
 pip install pytest
 python3 -m pytest tests
 ```
+
+Les tests utilisent une petite vidéo générée à la volée (lecture, navigation, échelle, pointage, mesures, export CSV).
 
 ## Structure
 
@@ -52,7 +84,8 @@ src/
 ├── controllers/          # Controller : lien entre la vue et le modèle
 ├── models/               # Video, Point, FileRepo (export CSV)
 └── views/                # interface Tkinter et graphiques
-tests/                    # tests unitaires (unittest / pytest)
+tests/                    # tests unitaires (pytest)
+resources/videos/         # vidéo d'exemple
 docs/                     # cahier des charges
 ```
 

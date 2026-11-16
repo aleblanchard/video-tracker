@@ -8,6 +8,7 @@ htmlcov/
 *.csv
 resources/videos/*
 !resources/videos/.gitkeep
+!resources/videos/exemple_chute.mp4
 .vscode/
 .idea/
 .DS_Store
