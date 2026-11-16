@@ -213,5 +213,5 @@ class Video:
         return [(x, y, frame) for (x, y), frame in zip(self.liste_points, self.liste_frame)]
 
     def __del__(self):
-        if self.cap.isOpened():
+        if self.cap is not None and self.cap.isOpened():
             self.cap.release()

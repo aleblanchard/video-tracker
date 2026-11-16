@@ -8,6 +8,18 @@ sys.path.insert(0, path)
 from unittest.mock import Mock, patch, MagicMock
 from tkinter import Tk, Canvas
 from src.models.Video import Video
+import numpy as np
+import cv2
+
+
+def make_mock_cap(width=640, height=480, opened=True):
+    """Simule un cv2.VideoCapture qui renvoie une vraie image noire."""
+    props = {cv2.CAP_PROP_FRAME_WIDTH: width, cv2.CAP_PROP_FRAME_HEIGHT: height}
+    cap = Mock()
+    cap.isOpened.return_value = opened
+    cap.get.side_effect = lambda prop: props.get(prop, 0)
+    cap.read.return_value = (True, np.zeros((height, width, 3), dtype=np.uint8))
+    return cap
 
 
 class TestVideo(unittest.TestCase):
@@ -23,18 +35,15 @@ class TestVideo(unittest.TestCase):
     @patch('cv2.VideoCapture')
     @patch('tkinter.messagebox.showerror')
     def test_open_file_success(self, mock_showerror, mock_VideoCapture):
-        mock_cap = Mock()
-        mock_cap.isOpened.return_value = True
-        mock_cap.get.side_effect = [640, 480]
-        mock_VideoCapture.return_value = mock_cap
+        mock_VideoCapture.return_value = make_mock_cap(640, 480)
 
         self.video.open_file('test_video.mp4', self.canvas, self.root)
 
         self.assertTrue(self.video.cap.isOpened())
         self.assertEqual(self.video.width, 640)
         self.assertEqual(self.video.height, 480)
-        self.assertEqual(self.canvas.cget('width'), 640)
-        self.assertEqual(self.canvas.cget('height'), 480)
+        self.assertEqual(int(self.canvas.cget('width')), 640)
+        self.assertEqual(int(self.canvas.cget('height')), 480)
         self.assertFalse(mock_showerror.called)
 
     @patch('cv2.VideoCapture')
@@ -50,10 +59,7 @@ class TestVideo(unittest.TestCase):
 
     @patch('cv2.VideoCapture')
     def test_show_frame(self, mock_VideoCapture):
-        mock_cap = Mock()
-        mock_cap.isOpened.return_value = True
-        mock_cap.read.return_value = (True, MagicMock())
-        mock_VideoCapture.return_value = mock_cap
+        mock_VideoCapture.return_value = make_mock_cap()
 
         self.video.open_file('test_video.mp4', self.canvas, self.root)
         self.video.show_frame(self.canvas)
@@ -63,18 +69,19 @@ class TestVideo(unittest.TestCase):
 
     def test_toggle_play_pause(self):
         self.video.pause = False
-        self.video.btn_play_pause = Mock()
+        self.video.cap = make_mock_cap()
+        self.video.btn_play_pause = MagicMock()
 
         with patch.object(self.video, 'play_video') as mock_play_video:
             self.video.toggle_play_pause(self.canvas, self.root)
             self.assertTrue(self.video.pause)
-            self.video.btn_play_pause.config.assert_called_with(text="▶️")
+            self.video.btn_play_pause.__setitem__.assert_called_with("text", "▶️")
             mock_play_video.assert_called_once()
 
         with patch.object(self.video, 'play_video') as mock_play_video:
             self.video.toggle_play_pause(self.canvas, self.root)
             self.assertFalse(self.video.pause)
-            self.video.btn_play_pause.config.assert_called_with(text="⏸️")
+            self.video.btn_play_pause.__setitem__.assert_called_with("text", "⏸️")
             mock_play_video.assert_called_once()
 
     def test_previous_frame(self):
